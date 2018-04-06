@@ -16,7 +16,7 @@ Display::~Display()
 
 
 void Display::displayInConsole(char tab[5][5], int x, int y) const {
-	cout << "SCORE : " << x << " --- " << y << endl << endl;
+	cout << "SCORE : " << x << " --- " << y << endl << "press -1 for quit or restart "<< endl << endl;
 	cout << "---------------------" << endl;
 	for (size_t i = 0; i < 5; i++)
 	{

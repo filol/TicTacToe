@@ -24,7 +24,6 @@ GameManager::~GameManager()
 
 void GameManager::launchGame()
 {
-	loadScore();
 	bool notFinish = true;
 	char tab[5][5] = {};
 	Display display;
@@ -49,6 +48,10 @@ void GameManager::launchGame()
 					cin.clear();
 					cin.ignore(numeric_limits<streamsize>::max(), '\n');
 				}
+				if (y==-1)
+				{
+					isQuit();
+				}
 			}
 			while (x < 1 || x>5) {
 				cout << "y : ";
@@ -57,6 +60,10 @@ void GameManager::launchGame()
 				{
 					cin.clear();
 					cin.ignore(numeric_limits<streamsize>::max(), '\n');
+				}
+				if (x == -1)
+				{
+					isQuit();
 				}
 			}
 			x--; y--;
@@ -75,9 +82,6 @@ void GameManager::launchGame()
 		scoreOfX++;
 	else
 		scoreOfY++;
-	saveScore();
-	system("pause");
-	launchGame();
 }
 
 bool GameManager::isFinish(char tab[5][5])
@@ -101,6 +105,25 @@ bool GameManager::isFinish(char tab[5][5])
 	return false;
 }
 
+void GameManager::isQuit()
+{
+	char response;
+	cout << "Quit or Restart ? (q or r) " << endl;
+	cin >> response;
+	if (response == 'q')
+	{
+		cout << "Save score ? (y or n) " << endl;
+		cin >> response;
+		if (response == 'y')
+		{
+			saveScore();
+		}
+		exit(0);
+	}
+	else
+		launchGame();
+}
+
 void GameManager::loadScore()
 {
 	string line;
@@ -112,6 +135,17 @@ void GameManager::loadScore()
 		getline(myfile, line);
 		scoreOfY = stoi(line);
 		myfile.close();
+	}
+}
+
+void GameManager::init()
+{
+	cout << " Load previous score ? (y or n) " << endl;
+	char response;
+	cin >> response;
+	if (response == 'y')
+	{
+		loadScore();
 	}
 }
 
