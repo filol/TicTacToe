@@ -1,10 +1,5 @@
 #include "stdafx.h"
 #include "GameManager.h"
-#include <iostream>
-#include <string>
-#include "Display.h"
-#include <stdlib.h>
-#include <fstream>
 
 
 using namespace std;
@@ -13,19 +8,23 @@ char playerSign = 'X';
 int scoreOfX = 0;
 int scoreOfY = 0;
 
-GameManager::GameManager()
-{
-}
-
-
-GameManager::~GameManager()
-{
-}
-
-void GameManager::launchGame()
+void GameManager::launchGame(char** tab)
 {
 	bool notFinish = true;
-	char tab[5][5] = {};
+	const int size = 5;
+	/*if (tab == nullptr) {
+		tab = new char*[size];
+		for (int i = 0; i < size; ++i) {
+			tab[i] = new char[size];
+			for (int j = 0; j < size; j++) {
+				tab[i][j] = ' ';
+			}
+		}
+	}*/
+
+	
+
+	
 	Display display;
 	int x, y;
 
@@ -33,8 +32,6 @@ void GameManager::launchGame()
 	{
 		system("cls"); // CLEAR FOR WINDOWS ONLY
 		display.displayInConsole(tab, scoreOfX, scoreOfY);
-	
-		
 
 		cout << "Where to play ? " << endl;
 		bool notPossible;
@@ -50,7 +47,7 @@ void GameManager::launchGame()
 				}
 				if (y==-1)
 				{
-					isQuit();
+					isQuit(tab);
 				}
 			}
 			while (x < 1 || x>5) {
@@ -63,14 +60,14 @@ void GameManager::launchGame()
 				}
 				if (x == -1)
 				{
-					isQuit();
+					isQuit(tab);
 				}
 			}
 			x--; y--;
-			notPossible = (tab[x][y] == '/0');
+			notPossible = *(*(tab+x)+y) == '/0';
 			
 		} while (notPossible);
-		tab[x][y] = playerSign;
+		*(*(tab+x)+y) = playerSign;
 		notFinish = !isFinish(tab);
 		playerSign = (playerSign == 'X') ? 'O' : 'X';
 	}
@@ -84,28 +81,37 @@ void GameManager::launchGame()
 		scoreOfY++;
 }
 
-bool GameManager::isFinish(char tab[5][5])
-{
+bool GameManager::isFinish(char** tab)
+{	
+	int size = SIZE_TAB;
 	//lignes
 	for (size_t i = 0; i < 5; i++)
-		if (tab[i][0] == playerSign && tab[i][1] == playerSign && tab[i][2] == playerSign && tab[i][3] == playerSign && tab[i][4] == playerSign)
-			return true;
+		for (size_t j = 0; j<size; j++)
+			if (*(*(tab+i)+j) == playerSign)
 
 	//columns
 	for (size_t i = 0; i < 5; i++)
-		if (tab[0][i] == playerSign && tab[1][i] == playerSign && tab[2][i] == playerSign && tab[3][i] == playerSign && tab[4][i] == playerSign)
-			return true;
+		for (size_t j =0;j<size;j++)
+			if (*(*(tab + i) + j) == playerSign)
+				return true;
 
 	//diags
-	if (tab[0][0] == playerSign && tab[1][1] == playerSign && tab[2][2] == playerSign && tab[3][3] == playerSign && tab[4][4] == playerSign)
-		return true;
-	if (tab[4][0] == playerSign && tab[3][1] == playerSign && tab[2][2] == playerSign && tab[1][3] == playerSign && tab[0][4] == playerSign)
-		return true;
+	for (size_t j = 0; j<size; j++)
+		if (*(*(tab + j) + j) == playerSign)
+			return true;
+	
+	int i = size;
+	int j = 0;
+	while (i < size) {
+		if (*(*(tab + i) + j) == playerSign)
+			return true;
+		i--; j++;
+	}
 
 	return false;
 }
 
-void GameManager::isQuit()
+void GameManager::isQuit(char** tab)
 {
 	char response;
 	cout << "Quit or Restart ? (q or r) " << endl;
@@ -116,44 +122,62 @@ void GameManager::isQuit()
 		cin >> response;
 		if (response == 'y')
 		{
-			saveScore();
+			saveScore(tab);
 		}
 		exit(0);
 	}
 	else
-		launchGame();
+		launchGame(nullptr);
 }
 
-void GameManager::loadScore()
+char** GameManager::loadScore()
 {
-	string line;
-	ifstream myfile("score.txt");
-	if (myfile.is_open())
-	{
-		getline(myfile, line);
-		scoreOfX = stoi(line);
-		getline(myfile, line);
-		scoreOfY = stoi(line);
-		myfile.close();
-	}
+	ifstream myfile("score.txt", ios::out);
+	return loadArray(myfile);
 }
 
-void GameManager::init()
+void GameManager::init(char** tab)
 {
 	cout << " Load previous score ? (y or n) " << endl;
 	char response;
 	cin >> response;
 	if (response == 'y')
 	{
-		loadScore();
+		tab = loadScore();
 	}
 }
 
-void GameManager::saveScore()
+void GameManager::saveScore(char** tab)
 {
-	ofstream myfile;
-	myfile.open("score.txt");
-	myfile << scoreOfX << "\n" << scoreOfY;
-	myfile.close();
+	ofstream of("score.txt");
+	saveArray(of,tab);
 }
+
+
+
+ostream& GameManager::saveArray(ostream& outfile, char** arr) {
+	const int size = SIZE_TAB;
+	for (int i = 0; i < size; i++)
+		for (int j = 0; j < size; j++) {
+			char value = arr[i][j] == ' ' ? '0' : arr[i][j];
+			outfile << value << " ";
+		}
+	return outfile;
+}
+
+char ** GameManager::loadArray(istream &file)
+{
+	const int size = SIZE_TAB;;
+	char** arr = new char*[size];
+	for (int i = 0; i < size; i++) {
+		arr[i] = new char[size];
+		for (int j = 0; j < size; j++) {
+			file >> arr[i][j];
+			if (arr[i][j] == '0') 
+				arr[i][j] = ' ';
+		}
+		return arr;
+	}
+}
+	
 

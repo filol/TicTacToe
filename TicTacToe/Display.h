@@ -5,9 +5,7 @@
 class Display
 {
 public:
-	Display();
-	~Display();
-	void displayInConsole(char tab[5][5], int x, int y) const;
+	void displayInConsole(char** tab, int x, int y) const;
 };
 
 #endif
